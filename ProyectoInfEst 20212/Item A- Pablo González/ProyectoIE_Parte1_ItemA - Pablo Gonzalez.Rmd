@@ -1,0 +1,143 @@
+---
+title: "Proyecto Inferencia Estadística - Parte 1 (Punto A)"
+author: "Pablo Gonzalez B."
+date: "26/1/2022"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+## Punto A
+
+Para este punto consideramos una muestra aleatoria $X_1, ..., X_n$ de una distribución $U[0, \theta = 3]$,  sabiendo que $\hat{\theta}_{MLE} = X^{(n)}$.
+
+Antes de empezar, importamos las librerías necesarias para la correcta ejecución del código.
+```{r}
+library(ggplot2)
+library(Brobdingnag)
+require(latex2exp)
+```
+
+#### Literal a)
+A continuación definimos una función que nos permite generar $m$ simulaciones de una muestra aleatoria de tamaño $n$ de la distribución $U[0, \theta = 3]$. En esta función, para cada simulación almacenamos la estimación maximo-verosimil en la variable ```MLE``` tomando el valor máximo de la muestra de tamaño $n$ y posteriormente generamos un histograma de todas las estimaciones MLE sobrelapando la función de densidad teórica de $X^{(n)}$ que la calculamos como:
+$$
+f_{X^{(n)}}(x) =nf_X(x)\cdot [F_X(x)]^{n-1} = \frac{n}{3}\cdot\Big(\frac{x}{3}\Big)^{n-1} = \frac{nx^{n-1}}{3^n}
+$$
+y la función de densidad teórica de $X^{(n)}$ viene definida como:
+
+```{r}
+densidad_teorica_Xn <- function(x, nParam, kappa = 3) {
+  (nParam/kappa) * (x/kappa)^(nParam-1)
+} 
+```
+
+Entonces la función que nos permite generar $m$ simulaciones queda definida de la siguiente manera:
+
+```{r}
+generarSimulacion <- function(kappa = 3, m = 1000, n) {
+  estimaciones = list()
+  
+  # Calcular y almacenar la estimación MLE de cada muestra.
+  for (i in 1:m) {
+    muestra = runif(n, min = 0, max = kappa)
+    MLE = max(unlist(muestra))
+    estimaciones[i] = MLE
+  }
+  
+  # Generar histograma con función de densidad teórica de X^(n)
+  estimacionesMLE = unlist(estimaciones, use.names = FALSE)
+  
+  xfit = seq(0, 3, 1/(n+1))
+  
+  hist(estimacionesMLE, 
+       breaks = 20, 
+       prob = TRUE, 
+       col = "lightgray", 
+       xlab="", 
+       ylab="Histograma", 
+       main=paste0("Histograma con realizaciones MLE \n Muestra de tamaño n = ", n))
+  
+  lines(xfit, densidad_teorica_Xn(xfit, nParam = n, kappa = kappa), from = 0, to = 3, ylab="", xlab="", col = "blue", type = "b", pch = 18, lty = 2)
+  
+  legend("topleft", legend="Función de densidad teorica de X^n",
+       col="blue", lty=2, cex=0.8, pch=18)
+}
+
+```
+
+Ejecutando la función con los parámetros $m = 1000, \ n = 10$ obtenemos la siguiente gráfica:
+
+``` {r, echo = FALSE}
+generarSimulacion(n = 10)
+```
+
+#### Literal b)
+Ahora en este caso repetiremos la simulación para $n = 50, 100, 200, 500, 1000$:
+``` {r, echo = FALSE}
+generarSimulacion(n = 50)
+```
+``` {r, echo = FALSE}
+generarSimulacion(n = 100)
+```
+``` {r, echo = FALSE}
+generarSimulacion(n = 200)
+```
+``` {r, echo = FALSE}
+generarSimulacion(n = 500)
+```
+``` {r, echo = FALSE}
+generarSimulacion(n = 1000)
+```
+
+#### Literal c)
+A medida que el tamaño de la muestra aumenta, vemos que el valor de la realización del estimador máximo-verosímil se concentra en el valor $3.0$. Además la pendiente de la función de densidad teorica se vuelve mas inclinada de manera positiva.
+
+#### Literal d)
+Ahora, para este literal queremos generar $m$ muestras de tamaños  $n = 10, 50, 100, 200, 500, 1000$, y para cada una de estas muestras queremos almacenar las $m$ realizaciones de $R_n$ que viene definida como sigue:
+$$
+R_n = n(\theta - X^{(n)})
+$$
+
+Por lo tanto para realizar esto definimos la siguiente función:
+```{r}
+generarSimulacionRn <- function(kappa = 3, m = 1000, n) {
+  realizaciones_Rn = list()
+  
+  # Calcular y almacenar la realizacion R_n de cada muestra.
+  for (i in 1:m) {
+    muestra = runif(n, min = 0, max = kappa)
+    MLE = max(unlist(muestra))
+    realizaciones_Rn[i] = n*(kappa - MLE)
+  }
+  
+  # Generar histograma con función de densidad teórica de X^(n)
+  realizaciones_Rn = unlist(realizaciones_Rn, use.names = FALSE)
+  
+  hist(realizaciones_Rn, 
+       breaks = 30, 
+       prob = TRUE, 
+       col = "lightgray", 
+       xlab="", 
+       ylab="Histograma", 
+       main=paste0("Histograma con realizaciones de R_n \n Muestra de tamaño n = ", n))
+}
+```
+Ya definida la función la ejecutamos para los valores $n = 10, 50, 100, 200, 500, 1000$:
+```{r, echo = FALSE}
+generarSimulacionRn(n = 10)
+```
+```{r, echo = FALSE}
+generarSimulacionRn(n = 50)
+```
+```{r, echo = FALSE}
+generarSimulacionRn(n = 100)
+```
+```{r, echo = FALSE}
+generarSimulacionRn(n = 200)
+```
+```{r, echo = FALSE}
+generarSimulacionRn(n = 500)
+```
+```{r, echo = FALSE}
+generarSimulacionRn(n = 1000)
+```
